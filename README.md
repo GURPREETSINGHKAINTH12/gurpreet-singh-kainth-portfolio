@@ -64,3 +64,5 @@ gurpreet-portfolio/
 The contact form is currently a front-end demonstration. It does not send emails.
 
 To make it functional later, connect it to a backend or an email service such as Formspree, EmailJS, or your own server.
+
+Thank you for visiting.
