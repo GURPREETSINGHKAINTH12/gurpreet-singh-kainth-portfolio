@@ -1412,3 +1412,36 @@ img {
         height: 230px;
     }
 }
+
+/* =========================================================
+   CERTIFICATE IMAGE FALLBACK
+   ========================================================= */
+
+.certificate-fallback {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    font-size: 0.9rem;
+    opacity: 0.65;
+}
+
+.certificate-fallback i {
+    font-size: 3rem;
+}
+
+.certificate-preview {
+    position: relative;
+}
+
+.certificate-preview img {
+    position: relative;
+    z-index: 2;
+}
+
+.certificate-preview-overlay {
+    z-index: 3;
+}

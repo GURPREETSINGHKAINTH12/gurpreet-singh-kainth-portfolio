@@ -170,11 +170,32 @@ document.getElementById("currentYear").textContent =
    LIVE CERTIFICATES FROM GOOGLE DRIVE
    ========================================================= */
 
+let allCertificates = [];
+
 document.addEventListener("DOMContentLoaded", () => {
     loadCertificates();
+
+    const certificateSearch =
+        document.getElementById("certificateSearch");
+
+    if (certificateSearch) {
+        certificateSearch.addEventListener("input", (event) => {
+            const searchTerm = event.target.value
+                .trim()
+                .toLowerCase();
+
+            const filteredCertificates = allCertificates.filter(
+                certificate =>
+                    (certificate.name || "")
+                        .toLowerCase()
+                        .includes(searchTerm)
+            );
+
+            renderCertificates(filteredCertificates);
+        });
+    }
 });
 
-let allCertificates = [];
 
 async function loadCertificates() {
     const grid = document.getElementById("certificatesGrid");
@@ -195,24 +216,29 @@ async function loadCertificates() {
             throw new Error("Invalid certificate data received.");
         }
 
-        /*
-         * Keep only actual files.
-         * Google Drive folders are excluded.
-         */
         allCertificates = data.certificates
-            .filter(file => file.mimeType !== "application/vnd.google-apps.folder")
-            .sort((a, b) => {
-                return new Date(b.createdTime) - new Date(a.createdTime);
-            });
+            .filter(file =>
+                file.mimeType !==
+                "application/vnd.google-apps.folder"
+            )
+            .sort((a, b) =>
+                new Date(b.createdTime) -
+                new Date(a.createdTime)
+            );
 
         renderCertificates(allCertificates);
 
         if (count) {
-            count.textContent = `${allCertificates.length} certificate${allCertificates.length === 1 ? "" : "s"}`;
+            count.textContent =
+                `${allCertificates.length} certificates`;
         }
 
     } catch (error) {
-        console.error("Certificate loading error:", error);
+
+        console.error(
+            "Certificate loading error:",
+            error
+        );
 
         grid.innerHTML = `
             <div class="certificate-error">
@@ -223,20 +249,27 @@ async function loadCertificates() {
         `;
 
         if (count) {
-            count.textContent = "Unable to load certificates";
+            count.textContent =
+                "Unable to load certificates";
         }
     }
 }
 
 
-/* ---------------------------------------------------------
+/* =========================================================
    RENDER CERTIFICATES
-   --------------------------------------------------------- */
+   ========================================================= */
 
 function renderCertificates(certificates) {
-    const grid = document.getElementById("certificatesGrid");
-    const emptyState = document.getElementById("certificateEmpty");
-    const count = document.getElementById("certificateCount");
+
+    const grid =
+        document.getElementById("certificatesGrid");
+
+    const emptyState =
+        document.getElementById("certificateEmpty");
+
+    const count =
+        document.getElementById("certificateCount");
 
     if (!grid) return;
 
@@ -248,6 +281,7 @@ function renderCertificates(certificates) {
     }
 
     if (certificates.length === 0) {
+
         if (emptyState) {
             emptyState.hidden = false;
         }
@@ -260,66 +294,98 @@ function renderCertificates(certificates) {
     }
 
     certificates.forEach((certificate, index) => {
-        const card = createCertificateCard(certificate, index);
+
+        const card =
+            createCertificateCard(
+                certificate,
+                index
+            );
+
         grid.appendChild(card);
     });
 }
 
 
-/* ---------------------------------------------------------
+/* =========================================================
    CREATE CERTIFICATE CARD
-   --------------------------------------------------------- */
+   ========================================================= */
 
 function createCertificateCard(certificate, index) {
 
-    const card = document.createElement("article");
+    const card =
+        document.createElement("article");
 
-    card.className = "certificate-card glass-card reveal";
+    card.className =
+        "certificate-card glass-card";
 
-    const title = certificate.name || "Certificate";
+    const title =
+        certificate.name ||
+        "Certificate";
 
-    const date = certificate.createdTime
-        ? formatCertificateDate(certificate.createdTime)
-        : "Date unavailable";
+    const date =
+        certificate.createdTime
+            ? formatCertificateDate(
+                certificate.createdTime
+            )
+            : "Date unavailable";
 
-    const viewLink = certificate.webViewLink || "#";
+    const viewLink =
+        certificate.webViewLink ||
+        "#";
 
-    const thumbnail = certificate.thumbnailLink;
-
-    let previewHTML = "";
-
-    if (thumbnail) {
-        previewHTML = `
-            <div class="certificate-preview">
-                <img
-                    src="${thumbnail}"
-                    alt="${escapeHTML(title)}"
-                    loading="lazy"
-                >
-
-                <div class="certificate-preview-overlay">
-                    <span>
-                        <i class="fa-solid fa-eye"></i>
-                        Preview
-                    </span>
-                </div>
-            </div>
-        `;
-    } else {
-        previewHTML = `
-            <div class="certificate-preview">
-                <div class="certificate-preview-overlay" style="opacity: 1;">
-                    <span>
-                        <i class="fa-solid fa-file-pdf"></i>
-                        PDF Certificate
-                    </span>
-                </div>
-            </div>
-        `;
-    }
+    /*
+     * Google Drive thumbnail.
+     *
+     * We use the Drive file ID to create
+     * a more reliable thumbnail URL.
+     */
+    const thumbnailUrl =
+        certificate.id
+            ? `https://drive.google.com/thumbnail?id=${encodeURIComponent(certificate.id)}&sz=w1000`
+            : null;
 
     card.innerHTML = `
-        ${previewHTML}
+        <div class="certificate-preview">
+
+            ${
+                thumbnailUrl
+                ?
+                `
+                <img
+                    src="${thumbnailUrl}"
+                    alt="${escapeHTML(title)}"
+                    loading="lazy"
+                    onerror="this.parentElement.classList.add('no-image'); this.style.display='none';"
+                >
+
+                <div class="certificate-fallback">
+                    <i class="fa-solid fa-file-pdf"></i>
+                    <span>Certificate</span>
+                </div>
+                `
+                :
+                `
+                <div class="certificate-fallback">
+                    <i class="fa-solid fa-file-pdf"></i>
+                    <span>Certificate</span>
+                </div>
+                `
+            }
+
+            <a
+                href="${viewLink}"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="certificate-preview-overlay"
+                aria-label="Preview ${escapeHTML(title)}"
+            >
+                <span>
+                    <i class="fa-solid fa-eye"></i>
+                    View Certificate
+                </span>
+            </a>
+
+        </div>
 
         <div class="certificate-body">
 
@@ -328,7 +394,9 @@ function createCertificateCard(certificate, index) {
                 Certificate
             </span>
 
-            <h3>${escapeHTML(title)}</h3>
+            <h3>
+                ${escapeHTML(title)}
+            </h3>
 
             <div class="certificate-date">
                 <i class="fa-regular fa-calendar"></i>
@@ -367,54 +435,36 @@ function createCertificateCard(certificate, index) {
 }
 
 
-/* ---------------------------------------------------------
-   FORMAT DATE
-   --------------------------------------------------------- */
+/* =========================================================
+   DATE FORMAT
+   ========================================================= */
 
 function formatCertificateDate(dateString) {
-    const date = new Date(dateString);
+
+    const date =
+        new Date(dateString);
 
     if (Number.isNaN(date.getTime())) {
         return "Date unavailable";
     }
 
-    return date.toLocaleDateString("en-IN", {
-        day: "numeric",
-        month: "short",
-        year: "numeric"
-    });
+    return date.toLocaleDateString(
+        "en-IN",
+        {
+            day: "numeric",
+            month: "short",
+            year: "numeric"
+        }
+    );
 }
 
 
-/* ---------------------------------------------------------
-   SEARCH CERTIFICATES
-   --------------------------------------------------------- */
-
-const certificateSearch = document.getElementById("certificateSearch");
-
-if (certificateSearch) {
-    certificateSearch.addEventListener("input", (event) => {
-
-        const searchTerm = event.target.value
-            .trim()
-            .toLowerCase();
-
-        const filteredCertificates = allCertificates.filter(certificate =>
-            (certificate.name || "")
-                .toLowerCase()
-                .includes(searchTerm)
-        );
-
-        renderCertificates(filteredCertificates);
-    });
-}
-
-
-/* ---------------------------------------------------------
+/* =========================================================
    ESCAPE HTML
-   --------------------------------------------------------- */
+   ========================================================= */
 
 function escapeHTML(value) {
+
     return String(value)
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
