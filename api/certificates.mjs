@@ -1,6 +1,6 @@
-const { google } = require("googleapis");
+import { google } from "googleapis";
 
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
     try {
         if (req.method !== "GET") {
             return res.status(405).json({
@@ -11,7 +11,7 @@ module.exports = async (req, res) => {
         const auth = new google.auth.GoogleAuth({
             credentials: {
                 client_email: process.env.GOOGLE_CLIENT_EMAIL,
-                private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n")
+                private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n")
             },
             scopes: [
                 "https://www.googleapis.com/auth/drive.readonly"
@@ -33,7 +33,7 @@ module.exports = async (req, res) => {
 
         const certificates = response.data.files || [];
 
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
             certificates
         });
@@ -41,9 +41,9 @@ module.exports = async (req, res) => {
     } catch (error) {
         console.error("Google Drive API Error:", error);
 
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: "Unable to load certificates"
         });
     }
-};
+}
