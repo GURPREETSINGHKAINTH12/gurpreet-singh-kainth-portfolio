@@ -73,17 +73,19 @@ function typeEffect() {
 
 typeEffect();
 
-// Active section in navigation
+// ==========================================
+// ACTIVE SECTION IN NAVIGATION
+// ==========================================
+
 const sections = document.querySelectorAll("section[id]");
 const navItems = document.querySelectorAll(".nav-link");
 
 function updateActiveNav() {
+    const marker = window.scrollY + 180;
     let current = "home";
 
     sections.forEach((section) => {
-        const top = section.offsetTop - 180;
-
-        if (window.scrollY >= top) {
+        if (marker >= section.offsetTop) {
             current = section.id;
         }
     });
@@ -97,6 +99,7 @@ function updateActiveNav() {
 }
 
 window.addEventListener("scroll", updateActiveNav);
+window.addEventListener("load", updateActiveNav);
 
 // Back to top
 const backToTop = document.getElementById("backToTop");
